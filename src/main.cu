@@ -1,19 +1,21 @@
 #include "include/cudaCheck.cuh"
+#include "include/vec3.cuh"
 
-__global__ void render(float *fb, int maxX, int maxY) {
+__global__ void render(Vec3 *fb, int maxX, int maxY) {
   int n = blockIdx.x * blockDim.x + threadIdx.x;
   int m = blockIdx.y * blockDim.y + threadIdx.y;
 
   if ((m > maxY) || (n > maxX))
     return;
 
-  int pixelIndex = m * maxX * 3 + n * 3;
-  // assume the r,g,b values for each pixel are laid out consecutively per pixel
+  int pixelIndex = m * maxX + n;
 
   // get more red and green has we get to larger pixel numbers
-  fb[pixelIndex + 0] = float(n) / maxX;
-  fb[pixelIndex + 1] = float(m) / maxY;
-  fb[pixelIndex + 2] = 0.2;
+  fb[pixelIndex] = Vec3(float(n) / maxX, float(m) / maxY, 0.2);
+
+  // fb[pixelIndex + 0] = float(n) / maxX;
+  // fb[pixelIndex + 1] = float(m) / maxY;
+  // fb[pixelIndex + 2] = 0.2;
 }
 
 int main() {
@@ -22,10 +24,10 @@ int main() {
   static constexpr int IMAGE_HEIGHT = 256;
 
   static constexpr int NUM_PIXELS = IMAGE_WIDTH * IMAGE_HEIGHT;
-  static constexpr size_t FB_SIZE = 3 * NUM_PIXELS * sizeof(float);
+  static constexpr size_t FB_SIZE = NUM_PIXELS * sizeof(Vec3);
 
   // allocate frame buffer (using unified memory, which is somewhat cringe)
-  float *fb;
+  Vec3 *fb;
   checkCudaErrors(cudaMallocManaged((void **)&fb, FB_SIZE));
 
   // NOTE: we want small thread blocks to minimize the probability that 1 thread
@@ -51,12 +53,13 @@ int main() {
   std::cout << "P3\n" << IMAGE_WIDTH << ' ' << IMAGE_HEIGHT << "\n255\n";
   for (int m = IMAGE_HEIGHT - 1; m >= 0;
        --m) { // make m axis (y) point up instead of down
+              // since we are reading our m axis in the reverse direction
     for (int n = 0; n < IMAGE_WIDTH; ++n) {
-      size_t pixelIndex = m * 3 * IMAGE_WIDTH + 3 * n;
+      size_t pixelIndex = m * IMAGE_WIDTH + n;
 
-      auto r = fb[pixelIndex + 0];
-      auto g = fb[pixelIndex + 1];
-      auto b = fb[pixelIndex + 2];
+      auto r = fb[pixelIndex].x();
+      auto g = fb[pixelIndex].y();
+      auto b = fb[pixelIndex].z();
 
       int ir = int(255.999 * r);
       int ig = int(255.999 * g);

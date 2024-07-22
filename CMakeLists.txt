@@ -30,6 +30,7 @@ list(APPEND CUDA_NVCC_FLAGS "-arch=${CUDA_ARCH}")
 set ( CUDA_SOURCE_ONE_WEEKEND
   src/main.cu
   src/include/cudaCheck.cuh
+  src/include/vec3.cuh
 #  src/InOneWeekend/camera.h
 #  src/InOneWeekend/color.h
 #  src/InOneWeekend/hittable.h
