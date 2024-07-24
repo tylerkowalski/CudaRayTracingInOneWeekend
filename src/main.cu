@@ -3,10 +3,24 @@
 #include "include/ray.cuh"
 #include "include/vec3.cuh"
 
+__device__ bool hitSphere(const Point3 &centre, double radius, const Ray &r) {
+  // solving the quadratic equation if the ray intersects the sphere
+  Vec3 oc = centre - r.origin();
+  auto a = dot(r.direction(), r.direction());
+  auto b = -2.0f * dot(r.direction(), oc);
+  auto c = dot(oc, oc) - radius * radius;
+  auto discriminant = b * b - 4.0f * a * c;
+  return discriminant >= 0.0f;
+}
+
 __device__ Vec3 colour(const Ray &ray) {
+  if (hitSphere(Point3(0, 0, -1), 0.5, ray)) {
+    return Colour(1, 0, 0);
+  }
+
   Vec3 unitDirection = unitVector(ray.direction());
-  auto alpha = 0.5 * (unitDirection.y() + 1.0); // puts alpha between 0 and 1
-  return (1.0 - alpha) * Colour(1.0, 1.0, 1.0) +
+  auto alpha = 0.5f * (unitDirection.y() + 1.0f); // puts alpha between 0 and 1
+  return (1.0f - alpha) * Colour(1.0, 1.0, 1.0) +
          alpha * Colour(0.5, 0.7,
                         1.0); // linear interpolation between blue and white
 }
