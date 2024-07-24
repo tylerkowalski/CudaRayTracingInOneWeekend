@@ -6,10 +6,10 @@
 __device__ bool hitSphere(const Point3 &centre, double radius, const Ray &r) {
   // solving the quadratic equation if the ray intersects the sphere
   Vec3 oc = centre - r.origin();
-  auto a = dot(r.direction(), r.direction());
-  auto b = -2.0f * dot(r.direction(), oc);
-  auto c = dot(oc, oc) - radius * radius;
-  auto discriminant = b * b - 4.0f * a * c;
+  float a = dot(r.direction(), r.direction());
+  float b = -2.0f * dot(r.direction(), oc);
+  float c = dot(oc, oc) - radius * radius;
+  float discriminant = b * b - 4.0f * a * c;
   return discriminant >= 0.0f;
 }
 
@@ -32,6 +32,7 @@ __global__ void render(Vec3 *fb, int maxX, int maxY, const Vec3 PIXEL00_LOC,
   int m = blockIdx.y * blockDim.y + threadIdx.y;
 
   if ((m > maxY) || (n > maxX))
+
     return;
 
   int pixelIndex = m * maxX + n;
